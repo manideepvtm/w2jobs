@@ -1,6 +1,21 @@
 import Stripe from 'stripe'
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+let _stripe: Stripe | undefined
+
+function getStripeInstance(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+  }
+  return _stripe
+}
+
+export const stripe = new Proxy({} as Stripe, {
+  get(_, prop) {
+    const instance = getStripeInstance()
+    const value = (instance as any)[prop]
+    return typeof value === 'function' ? value.bind(instance) : value
+  }
+})
 
 export const PLANS = {
   FREE: {
