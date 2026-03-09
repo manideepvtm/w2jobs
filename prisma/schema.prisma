@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  password  String?
+  role      Role     @default(JOBSEEKER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Profile
+  title       String?
+  bio         String?
+  location    String?
+  phone       String?
+  resumeUrl   String?
+  skills      String[]
+  linkedinUrl String?
+  githubUrl   String?
+
+  // Stripe Subscription
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  stripePriceId          String?
+  stripeCurrentPeriodEnd DateTime?
+
+  applications Application[]
+  savedJobs    SavedJob[]
+}
+
+enum Role {
+  JOBSEEKER
+  EMPLOYER
+  ADMIN
+}
+
+model Job {
+  id           String   @id @default(cuid())
+  title        String
+  company      String
+  location     String
+  type         String
+  salary       String?
+  description  String
+  requirements String[]
+  benefits     String[]
+  remote       Boolean  @default(false)
+  featured     Boolean  @default(false)
+  active       Boolean  @default(true)
+  postedAt     DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  applications Application[]
+  savedBy      SavedJob[]
+}
+
+model Application {
+  id          String            @id @default(cuid())
+  userId      String
+  jobId       String
+  status      ApplicationStatus @default(APPLIED)
+  coverLetter String?
+  appliedAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+}
+
+enum ApplicationStatus {
+  APPLIED
+  REVIEWING
+  INTERVIEW
+  OFFER
+  REJECTED
+  WITHDRAWN
+}
+
+model SavedJob {
+  id      String   @id @default(cuid())
+  userId  String
+  jobId   String
+  savedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+}
