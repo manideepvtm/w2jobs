@@ -13,14 +13,14 @@ export const PLANS = {
   },
   PRO: {
     name: 'Pro',
-    price: 19,
+    price: 49,
     priceId: process.env.STRIPE_PRO_PRICE_ID,
     features: ['Unlimited applications', 'Resume management', 'Application tracking', 'Priority visibility'],
     applicationLimit: null,
   },
   PREMIUM: {
     name: 'Premium',
-    price: 49,
+    price: 79,
     priceId: process.env.STRIPE_PREMIUM_PRICE_ID,
     features: ['All Pro features', 'Recruiter messaging', '1-on-1 career coaching', 'Featured badge', 'Early job access', 'Priority support'],
     applicationLimit: null,
