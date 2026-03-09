@@ -1,6 +1,6 @@
 import Stripe from 'stripe'
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY\!)
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 export const PLANS = {
   FREE: {
@@ -53,7 +53,7 @@ export const PLANS = {
 }
 
 export function getUserPlan(priceId?: string | null) {
-  if (\!priceId) return 'FREE'
+  if (!priceId) return 'FREE'
   if (priceId === process.env.STRIPE_PRO_PRICE_ID) return 'PRO'
   if (priceId === process.env.STRIPE_PREMIUM_PRICE_ID) return 'PREMIUM'
   return 'FREE'
