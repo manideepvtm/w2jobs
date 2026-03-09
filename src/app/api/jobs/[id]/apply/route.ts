@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/../auth";
 import { prisma } from "@/lib/prisma";
-import { getUserPlan } from "@/lib/stripe";
+import { getUserPlan, PLANS } from "@/lib/stripe";
 
 export async function POST(
   req: NextRequest,
@@ -35,13 +35,14 @@ export async function POST(
 
   const plan = getUserPlan(isSubscribed ? user.stripePriceId : null);
 
+  const planData = PLANS[plan as keyof typeof PLANS]
   if (
-    plan.limits.applicationsPerMonth !== -1 &&
-    user._count.applications >= plan.limits.applicationsPerMonth
+    planData.applicationLimit !== null &&
+    user._count.applications >= planData.applicationLimit
   ) {
     return NextResponse.json(
       {
-        error: `You've reached your ${plan.limits.applicationsPerMonth} application limit for the free plan. Upgrade to Pro for unlimited applications.`,
+        error: `You've reached your ${planData.applicationLimit} application limit for the free plan. Upgrade to Pro for unlimited applications.`,
         upgradeRequired: true,
       },
       { status: 403 }
