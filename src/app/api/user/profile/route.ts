@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/../auth";
 import { prisma } from "@/lib/prisma";
-import { getUserPlan } from "@/lib/stripe";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const session = await auth();
@@ -19,23 +20,11 @@ export async function GET() {
       bio: true,
       location: true,
       phone: true,
-      resumeUrl: true,
       skills: true,
       linkedinUrl: true,
       githubUrl: true,
-      stripePriceId: true,
-      stripeCurrentPeriodEnd: true,
-      stripeCustomerId: true,
-      _count: { select: { applications: true, savedJobs: true } },
-      applications: {
-        orderBy: { appliedAt: "desc" },
-        take: 10,
-        include: {
-          job: {
-            select: { id: true, title: true, company: true, location: true, type: true },
-          },
-        },
-      },
+      resumeUrl: true,
+      createdAt: true,
     },
   });
 
@@ -43,15 +32,10 @@ export async function GET() {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  const isSubscribed =
-    user.stripeCurrentPeriodEnd && user.stripeCurrentPeriodEnd > new Date();
-
-  const plan = getUserPlan(isSubscribed ? user.stripePriceId : null);
-
-  return NextResponse.json({ user, plan, isSubscribed: !!isSubscribed });
+  return NextResponse.json({ user });
 }
 
-export async function PATCH(req: NextRequest) {
+export async function PUT(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -63,14 +47,14 @@ export async function PATCH(req: NextRequest) {
   const user = await prisma.user.update({
     where: { id: session.user.id },
     data: {
-      name,
-      title,
-      bio,
-      location,
-      phone,
-      skills: Array.isArray(skills) ? skills : [],
-      linkedinUrl,
-      githubUrl,
+      ...(name !== undefined && { name }),
+      ...(title !== undefined && { title }),
+      ...(bio !== undefined && { bio }),
+      ...(location !== undefined && { location }),
+      ...(phone !== undefined && { phone }),
+      ...(skills !== undefined && { skills }),
+      ...(linkedinUrl !== undefined && { linkedinUrl }),
+      ...(githubUrl !== undefined && { githubUrl }),
     },
     select: {
       id: true,
@@ -83,6 +67,7 @@ export async function PATCH(req: NextRequest) {
       skills: true,
       linkedinUrl: true,
       githubUrl: true,
+      resumeUrl: true,
     },
   });
 
